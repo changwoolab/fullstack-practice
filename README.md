@@ -1,2 +1,15 @@
 # fullstack-practice
-My first fullstack project
+
+This practice includes these technologies
+
+- React
+- TypeScript
+- GraphQL
+- URQL/Apollo
+- Node.js
+- PostgreSQL
+- MikroORM/TypeORM
+- Redis
+- Next.js
+- TypeGraphQL
+- Chakra
