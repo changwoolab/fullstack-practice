@@ -11,7 +11,6 @@ export default {
     },
     // DB table 추가
     entities: [Post],
-    user:"postgres",
     password:"ckddnckd11",
     dbName: "lireddit",
     type: "postgresql",

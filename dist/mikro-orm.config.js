@@ -1,5 +1,5 @@
-import { __prod__ } from "./constants";
-import { Post } from "./entities/Post";
+import { __prod__ } from "./constants.js";
+import { Post } from "./entities/Post.js";
 import path from "path";
 export default {
     migrations: {
