@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { MikroORM } from "@mikro-orm/core"
 import { __prod__ } from "./constants";
 import { Post } from "./entities/Post";
@@ -32,9 +33,10 @@ const main = async () => {
             resolvers: [HelloResolver, PostResolver],
             validate: false
         }),
-        // context: 모든 resolver에 의해 접근됨, 모든 resolver가 필요한 것들을 가지고 있음.
+        // context: 모든 resolver에 의해 접근됨, resolver가 필요한 것들을 가지고 있음.
         context: () => ({ em: orm.em })
     });
+    await apolloServer.start();
     apolloServer.applyMiddleware({app});
     app.listen(4000, () => {
         console.log("server: 4000");
