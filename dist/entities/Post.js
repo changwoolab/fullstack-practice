@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,7 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Post = void 0;
+const core_1 = require("@mikro-orm/core");
 let Post = class Post {
     constructor() {
         this.createdAt = new Date();
@@ -15,23 +18,23 @@ let Post = class Post {
     }
 };
 __decorate([
-    PrimaryKey(),
+    core_1.PrimaryKey(),
     __metadata("design:type", Number)
 ], Post.prototype, "_id", void 0);
 __decorate([
-    Property(),
+    core_1.Property({ type: "date" }),
     __metadata("design:type", Date)
 ], Post.prototype, "createdAt", void 0);
 __decorate([
-    Property({ onUpdate: () => new Date() }),
+    core_1.Property({ type: "date", onUpdate: () => new Date() }),
     __metadata("design:type", Date)
 ], Post.prototype, "updatedAt", void 0);
 __decorate([
-    Property(),
+    core_1.Property({ type: "text" }),
     __metadata("design:type", String)
 ], Post.prototype, "name", void 0);
 Post = __decorate([
-    Entity()
+    core_1.Entity()
 ], Post);
-export { Post };
+exports.Post = Post;
 //# sourceMappingURL=Post.js.map
