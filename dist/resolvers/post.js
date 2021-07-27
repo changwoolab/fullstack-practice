@@ -8,21 +8,49 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostResolver = void 0;
-const Post_1 = require("src/entities/Post");
+const Post_1 = require("../entities/Post");
 const type_graphql_1 = require("type-graphql");
 let PostResolver = class PostResolver {
-    posts() {
-        return "hello world";
+    posts({ em }) {
+        return em.find(Post_1.Post, {});
+    }
+    post(id, { em }) {
+        return em.findOne(Post_1.Post, { id });
+    }
+    async createPost(title, { em }) {
+        const post = em.create(Post_1.Post, { title });
+        await em.persistAndFlush(post);
+        return post;
     }
 };
 __decorate([
     type_graphql_1.Query(() => [Post_1.Post]),
+    __param(0, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "posts", null);
+__decorate([
+    type_graphql_1.Query(() => Post_1.Post, { nullable: true }),
+    __param(0, type_graphql_1.Arg('id')),
+    __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "post", null);
+__decorate([
+    type_graphql_1.Mutation(() => Post_1.Post),
+    __param(0, type_graphql_1.Arg("title")),
+    __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "createPost", null);
 PostResolver = __decorate([
     type_graphql_1.Resolver()
 ], PostResolver);

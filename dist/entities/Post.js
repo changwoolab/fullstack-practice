@@ -22,14 +22,14 @@ __decorate([
     type_graphql_1.Field(),
     core_1.PrimaryKey(),
     __metadata("design:type", Number)
-], Post.prototype, "_id", void 0);
+], Post.prototype, "id", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String),
     core_1.Property({ type: "date" }),
     __metadata("design:type", Date)
 ], Post.prototype, "createdAt", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String),
     core_1.Property({ type: "date", onUpdate: () => new Date() }),
     __metadata("design:type", Date)
 ], Post.prototype, "updatedAt", void 0);
@@ -37,7 +37,7 @@ __decorate([
     type_graphql_1.Field(),
     core_1.Property({ type: "text" }),
     __metadata("design:type", String)
-], Post.prototype, "name", void 0);
+], Post.prototype, "title", void 0);
 Post = __decorate([
     type_graphql_1.ObjectType(),
     core_1.Entity()
