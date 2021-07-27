@@ -22,9 +22,39 @@ export class PostResolver {
     @Mutation(() => Post)
     async createPost( // em을 사용하려면 비동기적 작동이 필요 (+Promise를 반환하므로)
         @Arg("title") title: string,
-        @Ctx() {em}: MyContext): Promise<Post> { 
+        @Ctx() {em}: MyContext
+        ): Promise<Post> { 
             const post = em.create(Post, {title});
             await em.persistAndFlush(post);
             return post;
+    }
+
+    @Mutation(() => Post, { nullable:true })
+    async updatePost(
+        @Arg("id") id: number,
+        @Arg("title", () => String, { nullable: true }) title: string,
+        @Ctx() {em}: MyContext
+        ): Promise<Post | null> {
+            // await가 없다면 async로 작동하기 때문에 post에 들어오는 인자가
+            // 들어오기 전에 작동할수도 있으므로 post가 promise객체로 인식되어야 함.
+            // -> await를 넣음으로써 Post|null이 먼저 들어와서 인식되도록 함.
+            const post = await em.findOne(Post, {id}); // id를 이용해서 post 찾기
+            if (!post) { // id에 맞는 post가 없다면 return null
+                return null;
+            }
+            if (typeof title !== "undefined") {
+                post.title = title;
+                await em.persistAndFlush(post);
+            }
+            return post;
+    }
+
+    @Mutation(() => Boolean)
+    async deletePost(
+        @Arg("id") id: number,
+        @Ctx() {em}: MyContext
+        ): Promise<boolean> {
+            em.nativeDelete(Post, { id });
+            return true;
     }
 }
