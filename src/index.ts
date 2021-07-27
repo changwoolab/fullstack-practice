@@ -6,6 +6,7 @@ import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql"
 import { HelloResolver } from "./resolvers/hello";
+import { PostResolver } from "./resolvers/post";
 
 const main = async () => {
     // MikroORM.init();은 promise를 반환하기 때문에 await 사용
@@ -28,9 +29,11 @@ const main = async () => {
     // TypegraphQL도 GraphQL의 라이브러리 중 하나. (Typescript를 위한)
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver],
+            resolvers: [HelloResolver, PostResolver],
             validate: false
-        })
+        }),
+        // context: 모든 resolver에 의해 접근됨, 모든 resolver가 필요한 것들을 가지고 있음.
+        context: () => ({ em: orm.em })
     });
     apolloServer.applyMiddleware({app});
     app.listen(4000, () => {
