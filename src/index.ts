@@ -9,6 +9,11 @@ import { buildSchema } from "type-graphql"
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
+import redis from "redis";
+import session from "express-session";
+import connectRedis from "connect-redis";
+import { MyContext } from "./types";
+
 
 const main = async () => {
     // MikroORM.init();은 promise를 반환하기 때문에 await 사용
@@ -23,8 +28,31 @@ const main = async () => {
     // express.js에서는 app.get으로 함수 각각으로 나눌 수 있다는 것이 장점인듯!
     const app = express();
     
+    // Session을 위해 redis를 사용, redis를 사용하는 이유는 빨라서!
+    // redis가 빠른 이유는 디스크가 아닌 메모리에 저장하기 때문임.
+    // + 단순한 key-value 방식을 사용하기 때문에 빠름.
+    // 아폴로를 사용하기 전에 session을 먼저 연결해야 하므로 아폴로 앞에 코드 적기.
+    const RedisStore = connectRedis(session);
+    const redisClient = redis.createClient()
+    app.use(
+    session({
+        name: "qid",
+        store: new RedisStore({ client: redisClient,
+            disableTouch:true,
+        }),
+        cookie:{
+            httpOnly: true, // security 때문에 씀 (js로 접근X하게 함)
+            sameSite: "lax", // csrf로부터 보호
+            secure: __prod__ // https에서만 쿠키 작동
+        },
+        secret: 'keyboard cat',
+        saveUninitialized: false,
+        resave: false,
+    })
+    )
+
     // REST API는 메소드와 URL조합하여 예측가능하고 일정한 정보와 작업을 요청 (자판기)
-    //            단점은 필요없는 정보도 받아와야할 때도 있고 여러 depth에 있는 정보를 가져오려면 여러번 요청해야함.
+    // 단점은 필요없는 정보도 받아와야할 때도 있고 여러 depth에 있는 정보를 가져오려면 여러번 요청해야함.
     // GraphQL은 REST API의 단점을 보완하기 위한 쿼리언어임.
     // 즉, 자신이 필요한 정보만 요청해서 받아올 수 있음.
     // Apollo는 GraphQL의 라이브러리 중 하나.
@@ -35,7 +63,9 @@ const main = async () => {
             validate: false
         }),
         // context: 모든 resolver에 의해 접근됨, resolver가 필요한 것들을 가지고 있음.
-        context: () => ({ em: orm.em })
+        // {req, res}를 넣어주면 context를 통해 resolver가 session에 접근 가능해짐.
+        // 정확히는 req을 통해 session에 접근 가능
+        context: ({req, res}): MyContext => ({ em: orm.em, req, res })
     });
     await apolloServer.start();
     apolloServer.applyMiddleware({app});

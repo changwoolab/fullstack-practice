@@ -1,6 +1,6 @@
 import { User } from "../entities/User";
 import { MyContext } from "../types";
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Resolver } from "type-graphql";
 import argon2 from "argon2";
 
 // @~~는 지금부터 ~~를 정의할것임을 알려줌 @Resolver -> 지금부터 resolver 정의
@@ -28,7 +28,7 @@ class FieldError {
 @ObjectType()
 class UserResponse {
     @Field(() => [FieldError], {nullable:true})
-    errors?: FieldError[] // ?의 의미는 undefined라는 뜻
+    errors?: FieldError[] // ?의 의미는 undefined가 가능하다는 뜻
     @Field(() => User, {nullable: true})
     user?: User
 }
@@ -57,6 +57,7 @@ export class UserResolver {
                 }]
             };
         }
+        // Hashing을 통해 비번 암호화 해야 함. --> node-argon2 이용
         const hashedPassword = await argon2.hash(options.password);
         const user = em.create(User, {
             username: options.username, 
@@ -74,14 +75,13 @@ export class UserResolver {
                 };
             }
         }
-        // Hashing을 통해 비번 암호화 해야 함. --> node-argon2 이용
         return {user};
     }
 
     @Mutation(() => UserResponse)
     async login(
         @Arg("options") options: UsernamePasswordInput,
-        @Ctx() {em}: MyContext
+        @Ctx() {em, req}: MyContext
     ): Promise<UserResponse> { // 이 Promise가 반환할 값을 <> 안에 적음
         // username이 기존DB에 있는지 없는지 확인
         const user = await em.findOne(User, {username: options.username});
@@ -106,6 +106,8 @@ export class UserResolver {
                 }]
             };
         }
+        // session 연결
+        req.session.userId = user.id;
 
         return {user};
     }
