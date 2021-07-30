@@ -13,7 +13,7 @@ import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { MyContext } from "./types";
-
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 
 const main = async () => {
     // MikroORM.init();은 promise를 반환하기 때문에 await 사용
@@ -28,6 +28,7 @@ const main = async () => {
     // express.js에서는 app.get으로 함수 각각으로 나눌 수 있다는 것이 장점인듯!
     const app = express();
     
+    // redis는 DB, 캐시 등을 위한 데이터 저장 매체임.
     // Session을 위해 redis를 사용, redis를 사용하는 이유는 빨라서!
     // redis가 빠른 이유는 디스크가 아닌 메모리에 저장하기 때문임.
     // + 단순한 key-value 방식을 사용하기 때문에 빠름.
@@ -62,6 +63,11 @@ const main = async () => {
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false
         }),
+        plugins: [
+            // explorer은 cookie를 차단하기 때문에 playground에서 실험해야함.
+            ApolloServerPluginLandingPageGraphQLPlayground({
+            }),
+        ],
         // context: 모든 resolver에 의해 접근됨, resolver가 필요한 것들을 가지고 있음.
         // {req, res}를 넣어주면 context를 통해 resolver가 session에 접근 가능해짐.
         // 정확히는 req을 통해 session에 접근 가능

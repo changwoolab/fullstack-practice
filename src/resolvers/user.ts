@@ -1,6 +1,6 @@
 import { User } from "../entities/User";
 import { MyContext } from "../types";
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Resolver } from "type-graphql";
+import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import argon2 from "argon2";
 
 // @~~는 지금부터 ~~를 정의할것임을 알려줌 @Resolver -> 지금부터 resolver 정의
@@ -36,10 +36,25 @@ class UserResponse {
 // Resolver는 어떻게 이 graphQL이 작동하는지를 알려줌.
 @Resolver()
 export class UserResolver {
+    // Cookie를 이용한 login 유지 확인을 위한 쿼리
+    // 로그인을 하면 cookie가 클라이언트에 저장되고 이 cookie를 서버에 보냄으로써
+    // login authentication이 가능함.
+    @Query(() => User, {nullable : true})
+    async me(
+        @Ctx() { req, em }: MyContext
+    ) {
+        // not logged in
+        if (!req.session.userId) {
+            return null;
+        }
+        const user = await em.findOne(User, {id: req.session.userId});
+        return user;
+    }
+
     @Mutation(() => UserResponse)
     async register(
         @Arg("options") options: UsernamePasswordInput,
-        @Ctx() {em}: MyContext
+        @Ctx() {em, req}: MyContext
     ): Promise<UserResponse> {
         if (options.username.length <= 2) {
             return {
@@ -75,6 +90,12 @@ export class UserResolver {
                 };
             }
         }
+        
+        // store user id session
+        // this will set a cookie on the user
+        // keep them logged in
+        req.session.userId = user.id;
+
         return {user};
     }
 
@@ -106,7 +127,7 @@ export class UserResolver {
                 }]
             };
         }
-        // session 연결
+        // session으로 userId를 저장하기
         req.session.userId = user.id;
 
         return {user};

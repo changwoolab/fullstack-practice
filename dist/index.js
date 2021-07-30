@@ -16,6 +16,7 @@ const user_1 = require("./resolvers/user");
 const redis_1 = __importDefault(require("redis"));
 const express_session_1 = __importDefault(require("express-session"));
 const connect_redis_1 = __importDefault(require("connect-redis"));
+const apollo_server_core_1 = require("apollo-server-core");
 const main = async () => {
     const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
     await orm.getMigrator().up();
@@ -41,6 +42,9 @@ const main = async () => {
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
             validate: false
         }),
+        plugins: [
+            apollo_server_core_1.ApolloServerPluginLandingPageGraphQLPlayground({}),
+        ],
         context: ({ req, res }) => ({ em: orm.em, req, res })
     });
     await apolloServer.start();
