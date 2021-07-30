@@ -1,5 +1,4 @@
-req.session.userId = user.id;
-
+req.session.userId = user.id;가 실행되면
 {userId: 1} -> send this to redis
 
 1.

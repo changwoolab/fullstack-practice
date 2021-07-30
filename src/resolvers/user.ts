@@ -127,7 +127,7 @@ export class UserResolver {
                 }]
             };
         }
-        // session으로 userId를 저장하기
+        // session에 userId를 저장하기
         req.session.userId = user.id;
 
         return {user};
