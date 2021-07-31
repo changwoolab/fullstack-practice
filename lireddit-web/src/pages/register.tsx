@@ -33,8 +33,10 @@ const Register: React.FC<registerProps> = ({}) => {
     return (
         <Wrapper variant="small">
             <Formik initialValues={{ username: "", password: "" }}
-            onSubmit={(values) => {
-                return register(values); // return해줘야 submit이 완료된 것을 앎.
+            onSubmit={async (values) => {
+                // 여기서 response의 type을 제대로 알아내기 위해 graphql code generator을 사용.
+                const response = await register(values);
+                // return해줘야 submit이 완료된 것을 앎.
             }}
             >
             {({ isSubmitting}) => (
