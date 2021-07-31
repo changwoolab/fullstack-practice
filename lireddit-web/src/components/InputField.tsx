@@ -12,6 +12,7 @@ type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
 // "error message stuff" => true
 
 export const InputField: React.FC<InputFieldProps> = ({label, size: _, ...props}) => {
+    // [상태, 매서드]
     const [field, {error}] = useField(props);
     return (
         <FormControl isInvalid={!!error}>

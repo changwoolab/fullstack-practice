@@ -14,6 +14,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { MyContext } from "./types";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+import cors from "cors";
 
 const main = async () => {
     // MikroORM.init();은 promise를 반환하기 때문에 await 사용
@@ -35,6 +36,12 @@ const main = async () => {
     // 아폴로를 사용하기 전에 session을 먼저 연결해야 하므로 아폴로 앞에 코드 적기.
     const RedisStore = connectRedis(session);
     const redisClient = redis.createClient()
+
+    app.use(cors({ // express CORS에서 localhost:3000 서버에 대한 접속 허용하기.
+        origin: "http://localhost:3000",
+        credentials: true,
+    }))
+    
     app.use(
     session({
         name: "qid",
@@ -74,7 +81,10 @@ const main = async () => {
         context: ({req, res}): MyContext => ({ em: orm.em, req, res })
     });
     await apolloServer.start();
-    apolloServer.applyMiddleware({app});
+    apolloServer.applyMiddleware({
+        app,
+        cors: false, // CORS policy
+    });
     app.listen(4000, () => {
         console.log("server: 4000");
     });
