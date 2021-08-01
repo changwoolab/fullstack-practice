@@ -2,6 +2,7 @@ import { User } from "../entities/User";
 import { MyContext } from "../types";
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import argon2 from "argon2";
+import { EntityManager } from "@mikro-orm/postgresql";
 
 // @~~는 지금부터 ~~를 정의할것임을 알려줌 @Resolver -> 지금부터 resolver 정의
 // @Field -> 쿼리 받았을 때 사용할 수 있는 Field 정의
@@ -74,10 +75,23 @@ export class UserResolver {
         }
         // Hashing을 통해 비번 암호화 해야 함. --> node-argon2 이용
         const hashedPassword = await argon2.hash(options.password);
-        const user = em.create(User, {
-            username: options.username, 
-            password: hashedPassword});
+        let user;
         try {
+            // User schema를 사용하여 query를 만들어서 내용 업데이트한 뒤
+            // 성공하면 return "*" (*은 모든것을 반환한다는 뜻임)
+            const result = await (em as EntityManager)
+            .createQueryBuilder(User)
+            .getKnexQuery()
+            .insert (
+                {
+                    username: options.username,
+                    password: hashedPassword,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                }
+            )
+            .returning("*");
+            user = result[0];
             await em.persistAndFlush(user);
         } catch(err) {
             // duplicate username error

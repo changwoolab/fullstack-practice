@@ -1,0 +1,14 @@
+# 이 schema를 graphql code generator에게 넘겨주면
+# typescript typings인 graphql.tsx를 돌려줌.
+mutation Register($username: String!, $password:String!){
+    register(options: {username:$username, password: $password}) {
+      errors{
+        field
+        message
+      }
+      user{
+        id
+        username
+      }
+    }
+}
