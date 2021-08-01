@@ -1,7 +1,18 @@
 import { ChakraProvider, ColorModeProvider } from '@chakra-ui/react'
 import React from 'react'
-import { createClient, Provider } from 'urql';
+import { createClient, dedupExchange, fetchExchange, Provider } from 'urql';
 import theme from '../theme';
+import { cacheExchange, Cache, QueryInput } from '@urql/exchange-graphcache';
+import { LoginMutation, MeDocument, MeQuery, RegisterMutation } from '../generated/graphql';
+
+function betterUpdateQuery<Result, Query>(
+  cache: Cache,
+  qi: QueryInput,
+  result: any,
+  fn: (r: Result, q: Query) => Query
+) {
+  return cache.updateQuery(qi, (data)=>fn(result, data as any) as any);
+}
 
 // urql client
 // urql을 사용하는 이유는 프론트엔드와 백엔드를 연결하기 위함임.
@@ -13,9 +24,49 @@ const client = createClient({
   fetchOptions: {
     credentials: "include", // cookie를 위한 설정
   },
+  // login 했을 때 cache 때문에 로그인 안된 것처럼 보이는 문제 해결
+  // cache 업데이트!
+  exchanges: [dedupExchange, cacheExchange({
+    updates: {
+      Mutation: {
+        login: (_result, args, cache, info) => {
+          betterUpdateQuery<LoginMutation, MeQuery>(
+            cache,
+            {query: MeDocument},
+            _result,
+            (result, query) => {
+              if (result.login.errors) { // error발생하면 return query
+                return query;
+              } else {
+                return { // error 발생 안하면 update Mequery
+                  me: result.login.user
+                };
+              }
+            }
+          );
+        },
+        register: (_result, args, cache, info) => {
+          betterUpdateQuery<RegisterMutation, MeQuery>(
+            cache,
+            {query: MeDocument},
+            _result,
+            (result, query) => {
+              if (result.register.errors) {
+                return query;
+              } else {
+                return {
+                  me: result.register.user
+                };
+              }
+            }
+          );
+        },
+      }
+    }
+  }), fetchExchange],
 });
 
-function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }: any) {
   return (
     <Provider value={client}>
       <ChakraProvider resetCSS theme={theme}>
