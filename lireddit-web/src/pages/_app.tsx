@@ -3,7 +3,7 @@ import React from 'react'
 import { createClient, dedupExchange, fetchExchange, Provider } from 'urql';
 import theme from '../theme';
 import { cacheExchange, Cache, QueryInput } from '@urql/exchange-graphcache';
-import { LoginMutation, MeDocument, MeQuery, RegisterMutation } from '../generated/graphql';
+import { LoginMutation, LogoutMutation, MeDocument, MeQuery, RegisterMutation } from '../generated/graphql';
 
 function betterUpdateQuery<Result, Query>(
   cache: Cache,
@@ -29,16 +29,25 @@ const client = createClient({
   exchanges: [dedupExchange, cacheExchange({
     updates: {
       Mutation: {
+        logout: (_result, args, cache, info) => {
+          betterUpdateQuery<LogoutMutation, MeQuery>(
+            cache,
+            {query: MeDocument},
+            _result,
+            ()=> ({me: null})
+          )
+        },
         login: (_result, args, cache, info) => {
           betterUpdateQuery<LoginMutation, MeQuery>(
             cache,
             {query: MeDocument},
             _result,
-            (result, query) => {
-              if (result.login.errors) { // error발생하면 return query
+            (result, query) => { // updater function, login mutation이 발생할때마다 실행
+              // login에서 error발생하면 현재 Mequery를 리턴 (cache에 변함이 없음)
+              if (result.login.errors) { 
                 return query;
               } else {
-                return { // error 발생 안하면 update Mequery
+                return { // error 발생 안하면 Mequery를 업데이트 (cache가 변함)
                   me: result.login.user
                 };
               }
