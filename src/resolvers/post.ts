@@ -7,7 +7,7 @@ import { MyContext } from "../types";
 export class PostResolver {
     @Query(() => [Post])
     //posts라는 query가 들어오면 return Post들
-    posts(@Ctx() {em}: MyContext): Promise<Post[]> { // @Ctx = context를 사용한다는 뜻. 
+    async posts(@Ctx() {em}: MyContext): Promise<Post[]> { // @Ctx = context를 사용한다는 뜻. 
         return em.find(Post, {}); // 모든 Post들을 em DB에서 찾아서 return
     }
 
